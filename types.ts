@@ -1,9 +1,20 @@
-
 export interface Problem {
   id: string;
   title: string;
   description: string;
   skeletonCode: string;
+  tags: {
+    label: string;
+    level: 'Hard' | 'Medium' | 'Easy';
+    concept: string;
+  };
+  requirements: string[];
+  example: {
+    input: string;
+    output: string;
+    explanation: string;
+  };
+  hints: string[];
 }
 
 export interface Submission {

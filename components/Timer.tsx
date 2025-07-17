@@ -1,36 +1,54 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { IconPlay, IconRefreshCw } from './Icons';
 
-import React, { useState, useEffect, useCallback } from 'react';
+const IconPause: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <rect x="6" y="4" width="4" height="16"></rect>
+        <rect x="14" y="4" width="4" height="16"></rect>
+    </svg>
+);
+
+const PRESETS = [30, 45, 60]; // in minutes
 
 export const Timer: React.FC = () => {
-  const [duration, setDuration] = useState<number>(45 * 60); // Default 45 mins in seconds
-  const [timeLeft, setTimeLeft] = useState<number>(duration);
+  const [timeLeft, setTimeLeft] = useState<number>(PRESETS[0] * 60);
   const [isActive, setIsActive] = useState<boolean>(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
     if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
       }, 1000);
     } else if (timeLeft === 0) {
-      setIsActive(false);
-      // Optional: Add a sound or notification
+        setIsActive(false);
     }
+    
+    if(!isActive && intervalRef.current) {
+        clearInterval(intervalRef.current);
+    }
+
     return () => {
-      if (interval) clearInterval(interval);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isActive, timeLeft]);
 
   const handleStartStop = () => {
-    if (timeLeft === 0) return;
-    setIsActive(!isActive);
+    if (timeLeft > 0) {
+        setIsActive(!isActive);
+    }
   };
-
-  const handleReset = useCallback((newDuration: number) => {
-    setDuration(newDuration);
-    setTimeLeft(newDuration);
+  
+  const handleSetTime = useCallback((minutes: number) => {
     setIsActive(false);
+    setTimeLeft(minutes * 60);
   }, []);
+
+  const handleReset = useCallback(() => {
+    const currentPresetMinutes = PRESETS.find(p => p * 60 === timeLeft) ?? PRESETS[0];
+    handleSetTime(currentPresetMinutes);
+  }, [timeLeft, handleSetTime]);
+
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -38,26 +56,33 @@ export const Timer: React.FC = () => {
     return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const presets = [30, 45, 60];
-
   return (
-    <div className="text-center">
-      <div className="text-5xl font-mono font-bold text-slate-100 mb-4">{formatTime(timeLeft)}</div>
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <button onClick={handleStartStop} className={`px-4 py-2 rounded-md font-semibold text-white w-24 transition-colors ${isActive ? 'bg-orange-600 hover:bg-orange-500' : 'bg-green-600 hover:bg-green-500'}`}>
-          {isActive ? 'Pause' : 'Start'}
-        </button>
+    <div className="flex items-center gap-4">
+       <div className="flex items-center gap-2">
+            {PRESETS.map(minutes => (
+                <button
+                    key={minutes}
+                    onClick={() => handleSetTime(minutes)}
+                    className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
+                        Math.floor(timeLeft / 60) === minutes && !isActive
+                        ? 'bg-cyan-500 text-white font-semibold'
+                        : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                    }`}
+                >
+                    {minutes}m
+                </button>
+            ))}
       </div>
-      <div className="flex justify-center gap-2">
-        {presets.map((minutes) => (
-          <button
-            key={minutes}
-            onClick={() => handleReset(minutes * 60)}
-            className={`px-3 py-1 text-xs rounded-md font-semibold transition-colors ${duration === minutes * 60 ? 'bg-cyan-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}`}
-          >
-            {minutes} min
-          </button>
-        ))}
+      <div className="text-2xl font-mono font-bold text-green-400 w-24 text-center">
+        {formatTime(timeLeft)}
+      </div>
+      <div className="flex items-center gap-3">
+        <button onClick={handleStartStop} className="text-slate-300 hover:text-white transition-colors" title={isActive ? 'Pause' : 'Start'}>
+          {isActive ? <IconPause className="w-5 h-5" /> : <IconPlay className="w-5 h-5 fill-current" />}
+        </button>
+        <button onClick={handleReset} className="text-slate-300 hover:text-white transition-colors" title="Reset">
+          <IconRefreshCw className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );
