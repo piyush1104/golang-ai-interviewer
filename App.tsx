@@ -4,10 +4,10 @@ import { ProblemSelector } from './components/ProblemSelector';
 import { CodeEditor } from './components/CodeEditor';
 import { Timer } from './components/Timer';
 import { SubmissionHistory } from './components/SubmissionHistory';
-import { ReviewModal } from './components/ReviewModal';
+import { ReviewView } from './components/ReviewView';
 import { IconBook, IconCode, IconHistory, IconSend, IconLoader, IconBrainCircuit } from './components/Icons';
 import { PROBLEMS } from './constants';
-import type { Problem, SubmissionWithReview, Review } from './types';
+import type { Problem, SubmissionWithReview } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { getReview } from './services/geminiService';
 
@@ -15,9 +15,11 @@ export default function App() {
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(PROBLEMS[0]);
   const [code, setCode] = useState<string>(PROBLEMS[0].skeletonCode);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [review, setReview] = useState<Review | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [submissions, setSubmissions] = useLocalStorage<Record<string, SubmissionWithReview[]>>('golang-submissions', {});
+
+  const [view, setView] = useState<'editor' | 'review'>('editor');
+  const [selectedSubmission, setSelectedSubmission] = useState<SubmissionWithReview | null>(null);
+
 
   const currentSubmissions = useMemo(() => {
     return selectedProblem ? submissions[selectedProblem.id] || [] : [];
@@ -32,7 +34,6 @@ export default function App() {
     if (!selectedProblem || !code) return;
 
     setIsLoading(true);
-    setReview(null);
     try {
       const geminiReview = await getReview(code, selectedProblem);
       if (geminiReview) {
@@ -48,8 +49,9 @@ export default function App() {
           ...prev,
           [selectedProblem.id]: [newSubmission, ...(prev[selectedProblem.id] || [])]
         }));
-        setReview(geminiReview);
-        setIsModalOpen(true);
+
+        setSelectedSubmission(newSubmission);
+        setView('review');
       }
     } catch (error) {
       console.error("Failed to get review from Gemini:", error);
@@ -58,6 +60,15 @@ export default function App() {
       setIsLoading(false);
     }
   }, [code, selectedProblem, setSubmissions]);
+
+  const handleBackToEditor = () => {
+    setSelectedSubmission(null);
+    setView('editor');
+  };
+
+  if (view === 'review' && selectedSubmission) {
+    return <ReviewView submission={selectedSubmission} onBack={handleBackToEditor} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 font-sans">
@@ -102,8 +113,8 @@ export default function App() {
               <span>Submission History</span>
             </h2>
             <SubmissionHistory submissions={currentSubmissions} onSelect={(submission) => {
-                setReview(submission.review);
-                setIsModalOpen(true);
+                setSelectedSubmission(submission);
+                setView('review');
             }} />
           </div>
         </aside>
@@ -142,10 +153,6 @@ export default function App() {
           </div>
         </div>
       </main>
-
-      {review && isModalOpen && (
-        <ReviewModal review={review} onClose={() => setIsModalOpen(false)} />
-      )}
     </div>
   );
 }

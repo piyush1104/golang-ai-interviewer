@@ -1,5 +1,6 @@
 {
   "name": "GoLang AI Interviewer",
   "description": "An AI-powered platform for practicing GoLang coding interview problems. Get instant feedback and code reviews from Gemini.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "prompt": ""
 }

@@ -234,4 +234,78 @@ var fetcher = fakeFetcher{
 }
 `,
   },
+  {
+    id: 'worker-pool',
+    title: 'Concurrency and Worker Pool',
+    description: 'Design and implement a worker pool in Go that can process a large number of jobs concurrently. The system should accept new jobs, process them with a fixed number of worker goroutines, collect the results, and allow for a graceful shutdown of the pool.',
+    skeletonCode: `package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+// Job represents a job to be executed.
+type Job interface {
+	Execute() (interface{}, error)
+}
+
+// WorkerPool manages a pool of worker goroutines.
+type WorkerPool struct {
+	// TODO: Add fields for managing workers, jobs, results, and shutdown.
+	// Consider channels for jobs and results, a waitgroup, and a quit channel.
+}
+
+// NewWorkerPool creates a new worker pool.
+func NewWorkerPool(numWorkers int) *WorkerPool {
+	// TODO: Implement the constructor.
+	return &WorkerPool{}
+}
+
+// Start launches the worker goroutines.
+func (wp *WorkerPool) Start() {
+	// TODO: Start the worker goroutines.
+}
+
+// SubmitJob sends a job to the job queue.
+func (wp *WorkerPool) SubmitJob(job Job) {
+	// TODO: Implement job submission.
+}
+
+// Stop signals all workers to shut down gracefully.
+func (wp *WorkerPool) Stop() {
+	// TODO: Implement graceful shutdown.
+}
+
+// --- Example Job Implementation ---
+type MyJob struct {
+	ID    int
+	Value int
+}
+
+func (j *MyJob) Execute() (interface{}, error) {
+	// Simulate some work
+	fmt.Printf("Starting job %d\\n", j.ID)
+	time.Sleep(100 * time.Millisecond)
+	if j.ID%5 == 0 { // Simulate an error for some jobs
+		return nil, fmt.Errorf("error in job %d", j.ID)
+	}
+	fmt.Printf("Finished job %d\\n", j.ID)
+	return j.Value * j.Value, nil
+}
+
+
+func main() {
+	// Example Usage:
+	// 1. Create a NewWorkerPool with a specific number of workers.
+	// 2. Start the pool.
+	// 3. Create a goroutine to listen for results from the pool.
+	// 4. Submit a number of jobs (e.g., MyJob) to the pool.
+	// 5. When all work is done, Stop the pool.
+	
+	fmt.Println("Implement the main function to test your worker pool.")
+}
+`,
+  }
 ];

@@ -15,10 +15,11 @@ declare global {
 
 interface CodeEditorProps {
   code: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
+  readOnly?: boolean;
 }
 
-export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
+export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, readOnly = false }) => {
   
   useEffect(() => {
     // This is to ensure Ace is loaded, as we're using a CDN
@@ -34,7 +35,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
         <AceEditor
             mode="golang"
             theme="monokai"
-            onChange={onChange}
+            onChange={onChange ?? (() => {})}
             name="GOLANG_CODE_EDITOR"
             editorProps={{ $blockScrolling: true }}
             value={code}
@@ -43,12 +44,14 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
             fontSize={14}
             showPrintMargin={false}
             showGutter={true}
-            highlightActiveLine={true}
+            highlightActiveLine={!readOnly}
+            readOnly={readOnly}
             setOptions={{
                 enableBasicAutocompletion: true,
                 enableLiveAutocompletion: true,
                 enableSnippets: true,
                 tabSize: 4,
+                readOnly: readOnly,
             }}
         />
     </div>
