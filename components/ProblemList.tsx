@@ -1,11 +1,12 @@
 import React from 'react';
 import type { Problem, SubmissionWithReview } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { IconBrainCircuit, IconCheckCircle, IconHistory, IconChevronRight } from './Icons';
+import { IconBrainCircuit, IconCheckCircle, IconHistory, IconChevronRight, IconSettings } from './Icons';
 
 interface ProblemListProps {
   problems: Problem[];
   onSelectProblem: (problem: Problem) => void;
+  onOpenSettings: () => void;
 }
 
 const ProblemCard: React.FC<{ problem: Problem; onSelect: () => void }> = ({ problem, onSelect }) => {
@@ -71,9 +72,16 @@ const ProblemCard: React.FC<{ problem: Problem; onSelect: () => void }> = ({ pro
 };
 
 
-export const ProblemList: React.FC<ProblemListProps> = ({ problems, onSelectProblem }) => {
+export const ProblemList: React.FC<ProblemListProps> = ({ problems, onSelectProblem, onOpenSettings }) => {
   return (
-    <div className="max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="relative max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8">
+       <button 
+        onClick={onOpenSettings} 
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 text-slate-400 hover:text-white transition-colors z-10" 
+        title="Settings"
+      >
+        <IconSettings className="w-6 h-6" />
+      </button>
       <header className="text-center mb-10">
         <div className="flex justify-center items-center gap-4 mb-2">
             <IconBrainCircuit className="w-12 h-12 text-cyan-400" />

@@ -31,29 +31,27 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, readOnly
   }, []);
 
   return (
-    <div className="absolute top-0 left-0 w-full h-full">
-        <AceEditor
-            mode="golang"
-            theme="monokai"
-            onChange={onChange ?? (() => {})}
-            name="GOLANG_CODE_EDITOR"
-            editorProps={{ $blockScrolling: true }}
-            value={code}
-            width="100%"
-            height="100%"
-            fontSize={14}
-            showPrintMargin={false}
-            showGutter={true}
-            highlightActiveLine={!readOnly}
-            readOnly={readOnly}
-            setOptions={{
-                enableBasicAutocompletion: true,
-                enableLiveAutocompletion: true,
-                enableSnippets: true,
-                tabSize: 4,
-                readOnly: readOnly,
-            }}
-        />
-    </div>
+    <AceEditor
+        mode="golang"
+        theme="monokai"
+        onChange={onChange ?? (() => {})}
+        name="GOLANG_CODE_EDITOR"
+        editorProps={{ $blockScrolling: true }}
+        value={code}
+        width="100%"
+        height="100%"
+        fontSize={14}
+        showPrintMargin={false}
+        showGutter={true}
+        highlightActiveLine={!readOnly}
+        readOnly={readOnly}
+        setOptions={{
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: true,
+            enableSnippets: true,
+            tabSize: 4,
+            readOnly: readOnly,
+        }}
+    />
   );
 };

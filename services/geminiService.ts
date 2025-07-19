@@ -2,16 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Problem, Review } from '../types';
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  // This is a developer-facing error, not for the user.
-  // The environment should be configured with the key.
-  console.error("Gemini API key is missing. Please set the process.env.API_KEY environment variable.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
-
 const reviewSchema = {
   type: Type.OBJECT,
   properties: {
@@ -41,17 +31,12 @@ const reviewSchema = {
   required: ["score", "feedback", "strengths", "areasForImprovement"],
 };
 
-export async function getReview(code: string, problem: Problem): Promise<Review | null> {
-  if (!API_KEY) {
-    alert("This application is not configured with a Gemini API key. Code review is disabled.");
-    // Simulate a review for local testing without an API key
-    return {
-      score: 85,
-      feedback: "This is a mock review. The API key is missing. The code appears to follow a good structure and addresses the main points of the problem. Concurrency is handled, but could be more robust.",
-      strengths: ["Good use of structs and interfaces.", "The main logic is easy to follow.", "Handles the basic case correctly."],
-      areasForImprovement: ["Add more comprehensive error handling.", "Consider edge cases, such as an empty input.", "The locking mechanism could be more fine-grained to improve performance."],
-    };
+export async function getReview(code: string, problem: Problem, apiKey: string): Promise<Review> {
+  if (!apiKey) {
+    throw new Error("API Key Not Provided. Please add your Gemini API key in the settings to get a review.");
   }
+
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
 You are an expert Senior/Staff Backend Engineer at a top tech company, specializing in Go (Golang). You are conducting a machine coding interview.
@@ -93,11 +78,30 @@ Provide your review in a structured JSON format.
     });
 
     const jsonText = response.text.trim();
+    if (!jsonText) {
+        throw new Error("Received an empty response from Gemini API. The request may have been blocked due to safety settings.");
+    }
     const reviewData = JSON.parse(jsonText) as Review;
     return reviewData;
     
   } catch (error) {
-    console.error("Error generating content from Gemini:", error);
-    throw new Error("Failed to parse review from Gemini API.");
+    console.error("Error communicating with Gemini API:", error);
+    
+    let errorMessage = "Failed to get a review from the Gemini API. This could be due to network issues or the request being blocked. Please check the browser console for more details.";
+
+    if (error instanceof Error) {
+      const lowerCaseMsg = error.message.toLowerCase();
+      // Check for various API key-related error messages.
+      if (
+        lowerCaseMsg.includes('api key not valid') || 
+        lowerCaseMsg.includes('api_key_invalid') ||
+        lowerCaseMsg.includes('permission_denied') ||
+        lowerCaseMsg.includes('api key service is blocked')
+      ) {
+         errorMessage = "The provided Gemini API key is invalid, expired, or doesn't have the necessary permissions. Please check your key in the settings and try again.";
+      }
+    }
+    
+    throw new Error(errorMessage);
   }
 }

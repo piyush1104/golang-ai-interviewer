@@ -33,4 +33,5 @@ export interface Review {
 
 export interface SubmissionWithReview extends Submission {
   review: Review;
+  isMock?: boolean;
 }

@@ -26,9 +26,16 @@ export const SubmissionHistory: React.FC<SubmissionHistoryProps> = ({ submission
           onClick={() => onSelect(sub)}
           className="w-full flex justify-between items-center p-3 rounded-md bg-slate-700/50 hover:bg-slate-700 transition-colors duration-200"
         >
-          <span className="text-sm text-slate-300">
-            {new Date(sub.timestamp).toLocaleString()}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-slate-300">
+              {new Date(sub.timestamp).toLocaleString()}
+            </span>
+            {sub.isMock && (
+              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                Mock
+              </span>
+            )}
+          </div>
           <span className={`text-sm font-bold ${getScoreColor(sub.review.score)}`}>
             Score: {sub.review.score}
           </span>
