@@ -1,5 +1,5 @@
 
-import type { Problem } from './types';
+import type { Problem, MCQ, MCQCategory } from './types';
 
 export const PROBLEMS: Problem[] = [
     {
@@ -700,4 +700,222 @@ func main() {
       'The `net/url` package is useful for parsing URLs and checking their hostnames.',
     ],
   },
+];
+
+export const MCQ_CATEGORIES: MCQCategory[] = ['Syntax', 'Concurrency', 'Data Structures', 'Concepts', 'Code Fix'];
+
+export const MCQ_PROBLEMS: MCQ[] = [
+  {
+    id: 'mcq-1',
+    question: "What is the zero value of a pointer in Go?",
+    options: ["0", "nil", `""`, "It causes a compile error"],
+    correctAnswerIndex: 1,
+    explanation: "`nil` is the zero value for pointers, interfaces, maps, slices, channels, and function types. It represents an uninitialized state.",
+    category: 'Concepts'
+  },
+  {
+    id: 'mcq-2',
+    question: "How do you declare a constant in Go?",
+    options: ["let PI = 3.14", "const PI = 3.14", "final PI = 3.14", "var PI = 3.14"],
+    correctAnswerIndex: 1,
+    explanation: "Go uses the `const` keyword to declare constants. They are determined at compile time and cannot be changed during program execution.",
+    category: 'Syntax'
+  },
+  {
+    id: 'mcq-3',
+    question: "What does the `defer` keyword do in Go?",
+    options: ["Executes a function at the end of the program.", "Executes a function call just before the surrounding function returns.", "Delays the execution of a function for a specified time.", "Runs a function in a separate goroutine."],
+    correctAnswerIndex: 1,
+    explanation: "A `defer` statement defers the execution of a function until the surrounding function returns. Deferred calls are pushed onto a stack and executed in last-in-first-out (LIFO) order.",
+    category: 'Concepts'
+  },
+  {
+    id: 'mcq-4',
+    question: "Which of the following will result in a deadlock?",
+    codeSnippet: `package main
+
+func main() {
+    ch := make(chan int)
+    ch <- 1
+    <-ch
+}`,
+    options: ["The code will run without issues.", "The code will cause a deadlock.", "The code will panic.", "The code will not compile."],
+    correctAnswerIndex: 1,
+    explanation: "Sending to an unbuffered channel (`ch <- 1`) blocks until a receiver is ready. In this single-goroutine program, no other goroutine is available to receive, so the program blocks forever, causing a deadlock.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-5',
+    question: "What will be printed by the following code?",
+    codeSnippet: `package main
+
+import "fmt"
+
+func main() {
+    s := []int{1, 2, 3}
+    s = append(s, 4, 5)
+    fmt.Println(len(s), cap(s))
+}`,
+    options: ["5 5", "5 6", "3 6", "3 3"],
+    correctAnswerIndex: 1,
+    explanation: "When `append` causes a slice's underlying array to run out of capacity, Go allocates a new, larger array. The capacity often doubles. The original slice had a capacity of 3. Appending two elements exceeds this, so a new array of capacity 6 is allocated. The new length is 5.",
+    category: 'Data Structures'
+  },
+  {
+    id: 'mcq-6',
+    question: "How do you check if a key exists in a map?",
+    options: [`val := myMap["key"]`, `val, ok := myMap["key"]`, `exists(myMap, "key")`, `myMap.has("key")`],
+    correctAnswerIndex: 1,
+    explanation: "The 'comma ok' idiom is the standard way to check for key existence in a map. `ok` will be `true` if the key exists, and `false` otherwise, preventing confusion with zero values stored in the map.",
+    category: 'Data Structures'
+  },
+  {
+    id: 'mcq-7',
+    question: "In Go, which of these is NOT a keyword?",
+    options: ["interface", "goto", "select", "virtual"],
+    correctAnswerIndex: 3,
+    explanation: "Go does not have a `virtual` keyword. It achieves polymorphism through interfaces, which are satisfied implicitly without inheritance or virtual methods.",
+    category: 'Syntax'
+  },
+  {
+    id: 'mcq-8',
+    question: "What is the purpose of a `sync.WaitGroup`?",
+    options: ["To pause a goroutine for a specific duration.", "To wait for a collection of goroutines to finish.", "To create a mutex lock.", "To manage a pool of workers."],
+    correctAnswerIndex: 1,
+    explanation: "A `sync.WaitGroup` is used to block the execution of a goroutine until a set of other goroutines have completed their tasks. You `Add()` to the counter, and each goroutine calls `Done()` when it finishes.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-9',
+    question: "What is the correct way to fix the race condition in this code?",
+    codeSnippet: `package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var counter int
+	var wg sync.WaitGroup
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			counter++ // Race condition here
+		}()
+	}
+	wg.Wait()
+	fmt.Println(counter)
+}`,
+    options: ["Use a channel to update the counter.", "Wrap the `counter++` operation with a `sync.Mutex`.", "Use `atomic.AddInt64` to increment the counter.", "All of the above are valid solutions."],
+    correctAnswerIndex: 3,
+    explanation: "All three options are valid ways to fix this race condition. A mutex provides exclusive access, an atomic operation ensures the increment happens without interruption, and a channel can be used to serialize updates from a dedicated goroutine.",
+    category: 'Code Fix'
+  },
+  {
+    id: 'mcq-10',
+    question: "What is the difference between `new(T)` and `make(T)`?",
+    options: ["There is no difference.", "`new` allocates memory and zeros it; `make` initializes slices, maps, and channels.", "`make` allocates memory; `new` initializes it.", "`new` returns a pointer; `make` returns a value."],
+    correctAnswerIndex: 1,
+    explanation: "`new(T)` allocates zeroed storage for a new item of type T and returns its address (a *T). `make(T)` is only for slices, maps, and channels, and it returns an initialized (not zeroed) value of type T (not *T).",
+    category: 'Concepts'
+  },
+  {
+    id: 'mcq-11',
+    question: "How are errors typically handled in Go?",
+    options: ["Using try-catch blocks.", "By returning an `error` value as the last return value of a function.", "By panicking and recovering.", "By checking a global error variable."],
+    correctAnswerIndex: 1,
+    explanation: "The idiomatic way to handle errors in Go is to have functions return an `error` as their last return value. The caller then checks if the error is `nil` before proceeding.",
+    category: 'Concepts'
+  },
+  {
+    id: 'mcq-12',
+    question: "Which statement about Go interfaces is true?",
+    options: ["A type must explicitly declare that it implements an interface.", "Interfaces are implemented implicitly.", "Interfaces can contain fields.", "A type can only implement one interface."],
+    correctAnswerIndex: 1,
+    explanation: "Go interfaces are satisfied implicitly. If a type has all the methods required by an interface, it is considered to implement that interface automatically, without any `implements` keyword.",
+    category: 'Concepts'
+  },
+  {
+    id: 'mcq-13',
+    question: "What does the following code print?",
+    codeSnippet: `package main
+
+import "fmt"
+
+func main() {
+	for i := 0; i < 3; i++ {
+		defer fmt.Print(i)
+	}
+}`,
+    options: ["012", "123", "210", "000"],
+    correctAnswerIndex: 2,
+    explanation: "Deferred function calls are pushed onto a stack. When the surrounding function (`main`) returns, the calls are popped off and executed in LIFO order. The values of `i` (2, 1, 0) were evaluated and stored at the time of the `defer` call.",
+    category: 'Syntax'
+  },
+  {
+    id: 'mcq-14',
+    question: "A `select` statement in Go is used to:",
+    options: ["Choose between different `if-else` conditions.", "Wait on multiple channel operations.", "Iterate over a map.", "Define a type switch."],
+    correctAnswerIndex: 1,
+    explanation: "A `select` statement lets a goroutine wait on multiple communication operations (sends or receives on channels). It blocks until one of its cases can run, then it executes that case.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-15',
+    question: "What is the visibility of a struct field that starts with a lowercase letter?",
+    options: ["Public (exported)", "Private to the file", "Private to the package (unexported)", "It is a compile error"],
+    correctAnswerIndex: 2,
+    explanation: "In Go, identifiers (like struct fields, functions, or types) are exported (public) if they start with an uppercase letter. If they start with a lowercase letter, they are unexported (private) to the package they are defined in.",
+    category: 'Syntax'
+  },
+  {
+    id: 'mcq-16',
+    question: "What is a buffered channel?",
+    options: ["A channel that can store a limited number of values without a corresponding receiver.", "A channel that can only store one value.", "A channel that is faster than a regular channel.", "A channel that can be read by multiple goroutines simultaneously."],
+    correctAnswerIndex: 0,
+    explanation: "A buffered channel has a capacity greater than zero (`make(chan int, 10)`). Senders to a buffered channel only block when the buffer is full. Receivers block only when the buffer is empty.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-17',
+    question: "What is the output of this program?",
+    codeSnippet: `package main
+import "fmt"
+
+func main() {
+    var m map[string]int
+    m["key"] = 1
+    fmt.Println(m)
+}`,
+    options: ["map[key:1]", "map[]", "nil", "A panic occurs."],
+    correctAnswerIndex: 3,
+    explanation: "A nil map cannot be written to. The line `m[\"key\"] = 1` will cause a runtime panic because the map `m` was declared but not initialized with `make()`.",
+    category: 'Code Fix'
+  },
+  {
+    id: 'mcq-18',
+    question: "What is `go vet` used for?",
+    options: ["Formatting Go code according to standards.", "Running unit tests.", "Reporting suspicious constructs in Go programs.", "Compiling Go code."],
+    correctAnswerIndex: 2,
+    explanation: "`go vet` is a tool that examines Go source code and reports suspicious constructs, such as `Printf` calls whose arguments do not align with the format string, or methods that are shadowed by embedding.",
+    category: 'Concepts'
+  },
+  {
+    id: 'mcq-19',
+    question: "In Go, arrays are:",
+    options: ["Reference types", "Value types", "Dynamically sized", "The same as slices"],
+    correctAnswerIndex: 1,
+    explanation: "Arrays in Go are value types. When an array is assigned to a new variable or passed to a function, the entire array is copied. This is different from slices, which are reference types.",
+    category: 'Data Structures'
+  },
+  {
+    id: 'mcq-20',
+    question: "What does the `context` package primarily help with?",
+    options: ["Managing application configuration.", "Parsing command-line arguments.", "Handling request-scoped values, cancellation signals, and deadlines across API boundaries and between goroutines.", "Providing helper functions for data structures."],
+    correctAnswerIndex: 2,
+    explanation: "The `context` package is essential for managing the lifecycle of requests. It provides a standard way to propagate cancellation signals, deadlines, and other request-scoped data through a call chain, especially in concurrent programs.",
+    category: 'Concurrency'
+  }
 ];

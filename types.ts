@@ -35,3 +35,17 @@ export interface SubmissionWithReview extends Submission {
   review: Review;
   isMock?: boolean;
 }
+
+export type MCQCategory = 'Syntax' | 'Concurrency' | 'Data Structures' | 'Concepts' | 'Code Fix';
+
+export interface MCQ {
+  id: string;
+  question: string;
+  codeSnippet?: string;
+  options: string[];
+  correctAnswerIndex: number;
+  explanation: string;
+  category: MCQCategory;
+}
+
+export type MCQAnswerStatus = 'passed' | 'failed';
