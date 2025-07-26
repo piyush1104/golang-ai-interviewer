@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { MCQ, MCQAnswerStatus } from '../types';
 import { CodeEditor } from './CodeEditor';
@@ -73,7 +72,7 @@ export const MCQCard: React.FC<MCQCardProps> = ({ mcq, status, onStatusChange })
         </div>
 
         {mcq.codeSnippet && (
-            <div className="my-4 rounded-md overflow-hidden border border-slate-700 max-h-60">
+            <div className="my-4 rounded-md overflow-auto border border-slate-700 max-h-60">
                 <CodeEditor code={mcq.codeSnippet} readOnly={true} />
             </div>
         )}

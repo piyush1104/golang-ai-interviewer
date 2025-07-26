@@ -99,7 +99,6 @@ export const MCQPage: React.FC<MCQPageProps> = ({ onBack }) => {
   };
 
   const currentQuestion = filteredQuestions[currentQuestionIndex];
-  const isCurrentAnswered = currentQuestion ? !!answers[currentQuestion.id] : false;
 
   const QuizView = (
     <div>
@@ -133,7 +132,7 @@ export const MCQPage: React.FC<MCQPageProps> = ({ onBack }) => {
               </button>
               <button 
                 onClick={handleNext} 
-                disabled={!isCurrentAnswered || currentQuestionIndex >= filteredQuestions.length - 1}
+                disabled={currentQuestionIndex >= filteredQuestions.length - 1}
                 className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-md transition-colors"
               >
                 Next

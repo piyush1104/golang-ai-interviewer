@@ -917,5 +917,260 @@ func main() {
     correctAnswerIndex: 2,
     explanation: "The `context` package is essential for managing the lifecycle of requests. It provides a standard way to propagate cancellation signals, deadlines, and other request-scoped data through a call chain, especially in concurrent programs.",
     category: 'Concurrency'
+  },
+  {
+    id: 'mcq-21',
+    question: "What happens when a `case` in a `select` statement corresponds to a `nil` channel?",
+    codeSnippet: `package main
+import "fmt"
+
+func main() {
+    ch1 := make(chan int, 1)
+    var ch2 chan int // ch2 is nil
+    ch1 <- 1
+    
+    select {
+    case <-ch1:
+        fmt.Println("Read from ch1")
+    case ch2 <- 1:
+        fmt.Println("Wrote to ch2")
+    }
+}`,
+    options: ["The select statement will block forever.", "The program will panic.", "The program will print 'Read from ch1'.", "It will randomly choose between the two cases."],
+    correctAnswerIndex: 2,
+    explanation: "A case in a `select` statement involving a `nil` channel is always ignored and will never be selected. Therefore, the `select` statement only considers the `case <-ch1`, which is ready. The program will not block or panic.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-22',
+    question: "What is the likely issue with using `time.After` inside a `for` loop like this?",
+    codeSnippet: `func process(tasks <-chan int) {
+    for {
+        select {
+        case task := <-tasks:
+            fmt.Println("Processing task:", task)
+        case <-time.After(1 * time.Minute):
+            fmt.Println("Timed out")
+            return
+        }
+    }
+}`,
+    options: ["A deadlock will occur if no tasks are received.", "The code has a race condition on the `tasks` channel.", "A memory leak can occur because a new Timer is allocated in each loop iteration.", "The code is perfectly fine and has no issues."],
+    correctAnswerIndex: 2,
+    explanation: "`time.After(d)` creates a new `Timer` object on every call. If the `tasks` channel receives frequently, the old, unused timers may not be garbage collected promptly, leading to a memory leak. A better pattern is to create a single timer outside the loop and use `Reset`.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-23',
+    question: "What happens when this program, which attempts a lock upgrade, is run?",
+    codeSnippet: `package main
+import "sync"
+
+func main() {
+    var mu sync.RWMutex
+    mu.RLock()
+    mu.Lock() // Attempt to upgrade to a write lock
+    mu.Unlock()
+    mu.RUnlock()
+}`,
+    options: ["It runs successfully.", "It panics.", "It results in a deadlock.", "It fails to compile."],
+    correctAnswerIndex: 2,
+    explanation: "A goroutine holding a read lock (`RLock`) cannot acquire a write lock (`Lock`) on the same `RWMutex` without first releasing the read lock. This attempt to 'upgrade' the lock will cause the goroutine to block forever, waiting for itself to release the read lock, resulting in a deadlock.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-24',
+    question: "In the following code, how many times will 'Initialization complete' be printed?",
+    codeSnippet: `package main
+import (
+    "fmt"
+    "sync"
+)
+
+func main() {
+    var once sync.Once
+    var wg sync.WaitGroup
+    initFunc := func() { fmt.Println("Initialization complete") }
+    
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            once.Do(initFunc)
+        }()
+    }
+    wg.Wait()
+}`,
+    options: ["10", "1", "0", "It is non-deterministic."],
+    correctAnswerIndex: 1,
+    explanation: "`sync.Once` guarantees that the function passed to its `Do` method is executed exactly one time, regardless of how many goroutines call it concurrently. The first goroutine to acquire the lock within `Do` will execute the function; all others will block and then return without executing it.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-25',
+    question: "What is the result of sending a value to a closed channel?",
+    codeSnippet: `package main
+
+func main() {
+    ch := make(chan int, 1)
+    close(ch)
+    ch <- 1
+}`,
+    options: ["The send operation blocks forever.", "The value is silently discarded.", "The program panics.", "The send operation returns immediately without error."],
+    correctAnswerIndex: 2,
+    explanation: "Attempting to send a value to a channel that has already been closed will cause a runtime panic. Conversely, receiving from a closed channel is safe and will yield the zero value for the channel's type.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-26',
+    question: "Identify the concurrency bug in this code snippet.",
+    codeSnippet: `func main() {
+    ch := make(chan string)
+    go func() {
+        // This goroutine is supposed to receive, but it returns early.
+        if true { return }
+        <-ch 
+    }()
+    ch <- "hello" // This line will block.
+}`,
+    options: ["Race condition on channel `ch`.", "A goroutine leak.", "The program will panic.", "There is no bug; the program will complete."],
+    correctAnswerIndex: 1,
+    explanation: "The main goroutine sends to the unbuffered channel `ch` and blocks, waiting for a receiver. The spawned goroutine, which is the intended receiver, returns immediately. Since no other goroutine can receive from `ch`, the main goroutine blocks forever, and the spawned goroutine leaks because it's waiting in the Go runtime's run queue but never finishes.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-27',
+    question: "What is the best practice for keys used with `context.WithValue`?",
+    options: ["Using built-in types like `string` or `int`.", "Using an unexported custom type.", "Using a global variable.", "Using a pointer to a struct."],
+    correctAnswerIndex: 1,
+    explanation: "The best practice is to use an unexported (lowercase) custom type for context keys. This prevents key collisions between different packages, as two packages cannot access each other's unexported types, ensuring that one package's context value doesn't accidentally overwrite another's.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-28',
+    question: "What is a key characteristic of objects stored in a `sync.Pool`?",
+    options: ["They are guaranteed to persist for the lifetime of the application.", "They can be automatically removed from the pool at any time by the garbage collector.", "They are accessible by a unique key.", "They provide automatic thread-safety for the object's methods."],
+    correctAnswerIndex: 1,
+    explanation: "`sync.Pool` is a cache for temporary objects. A key feature is that any object stored in the pool may be arbitrarily removed at any time without notification, especially during garbage collection cycles. It should not be used for long-term storage.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-29',
+    question: "What is the behavior of a `for...range` loop on a channel after the channel is closed?",
+    options: ["The loop panics.", "The loop exits immediately.", "The loop continues to receive values that were sent before the close, then exits.", "The loop blocks forever."],
+    correctAnswerIndex: 2,
+    explanation: "The `for...range` loop on a channel will first receive all remaining values from the channel's buffer. Once the channel is empty and has been closed, the loop terminates gracefully.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-30',
+    question: "What is the purpose of the `default` case in a `select` statement?",
+    options: ["It is executed if the `select` statement has been blocking for a certain amount of time.", "It provides a fallback case if all other channel operations would block.", "It is a required final case for all `select` statements.", "It is executed after another case is chosen."],
+    correctAnswerIndex: 1,
+    explanation: "The `default` case makes a `select` statement non-blocking. If no other channel send or receive is immediately ready, the `default` case is executed instead of the `select` statement blocking.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-31',
+    question: "What happens if you attempt to close a channel that has already been closed?",
+    options: ["It has no effect.", "It returns an error.", "It causes a runtime panic.", "It re-opens the channel."],
+    correctAnswerIndex: 2,
+    explanation: "Closing an already closed channel results in a runtime panic. It is crucial to ensure that only one goroutine is responsible for closing a channel, typically the sender.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-32',
+    question: "When is `sync.Map` preferable to a standard `map` with a `sync.RWMutex`?",
+    options: ["When the map is write-heavy with frequent additions and deletions.", "When keys are written once and read many times by many goroutines.", "When the map is small and has low contention.", "When you need to range over the map frequently."],
+    correctAnswerIndex: 1,
+    explanation: "`sync.Map` is optimized for two specific use cases: when the entry for a given key is only ever written once but read many times, or when multiple goroutines read, write, and overwrite entries for disjoint sets of keys. In write-heavy or high-contention scenarios on the same keys, a `map` with a `Mutex` can be more performant.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-33',
+    question: "If multiple cases in a `select` statement are ready to proceed, which one is chosen?",
+    options: ["The first case listed in the source code.", "The case that has been waiting the longest.", "A case is chosen pseudo-randomly.", "All ready cases are executed simultaneously."],
+    correctAnswerIndex: 2,
+    explanation: "If multiple cases in a `select` statement can proceed, Go's runtime makes a pseudo-random choice among them. This prevents starvation where one channel in a `select` might always be prioritized over others.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-34',
+    question: "What happens when you attempt to send a value to a `nil` channel?",
+    options: ["The program panics.", "The send operation blocks forever.", "The value is discarded and the operation returns immediately.", "It returns an error."],
+    correctAnswerIndex: 1,
+    explanation: "Sending to a `nil` channel blocks the goroutine indefinitely. Similarly, receiving from a `nil` channel also blocks forever. This is a common source of deadlocks.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-35',
+    question: "What is wrong with the `sync.WaitGroup` usage in this code?",
+    codeSnippet: `package main
+import "sync"
+
+func main() {
+    var wg sync.WaitGroup
+    for i := 0; i < 5; i++ {
+        go func(val int) {
+            defer wg.Done()
+            wg.Add(1) // Incorrect placement
+            // do work with val
+        }(i)
+    }
+    wg.Wait()
+}`,
+    options: ["`wg.Done()` is called with defer.", "A race condition exists on `wg.Add()` and `wg.Wait()`.", "`wg.Add(1)` should not be called inside the goroutine.", "Both B and C are correct."],
+    correctAnswerIndex: 3,
+    explanation: "`wg.Add()` must be called in the main goroutine before the worker goroutine is launched. If `Add` is called inside the worker, the main goroutine's `wg.Wait()` might execute before `Add` is ever called, leading to a panic or incorrect synchronization. This is a race condition.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-36',
+    question: "If a parent `context` is cancelled, what happens to a child `context` derived from it?",
+    options: ["The child context is unaffected.", "The child context is also cancelled automatically.", "The child context panics.", "The child context must be manually cancelled."],
+    correctAnswerIndex: 1,
+    explanation: "Context cancellation propagates down the context tree. When a parent context is cancelled (either via its `cancel` function, a timeout, or a deadline), all child contexts derived from it are immediately cancelled as well.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-37',
+    question: "When is it generally better to use `atomic` operations instead of a `sync.Mutex`?",
+    options: ["For protecting complex multi-step operations on a struct.", "For simple, primitive operations like incrementing a numeric counter.", "When the critical section is very large.", "When you need to support recursive locking."],
+    correctAnswerIndex: 1,
+    explanation: "Atomic operations are ideal for very simple operations on primitive types (e.g., integers, pointers). They are much more performant than mutexes as they don't involve the OS scheduler or context switching. Mutexes are necessary for protecting more complex critical sections involving multiple operations.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-38',
+    question: "What is the behavior of an empty select statement: `select {}`?",
+    options: ["It causes a compile error.", "It returns immediately.", "It panics at runtime.", "It blocks the goroutine forever."],
+    correctAnswerIndex: 3,
+    explanation: "An empty `select` statement with no cases will block the current goroutine forever. This can be a deliberate technique to prevent a program (like a server) from exiting, although using channels is more common.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-39',
+    question: "What is the primary difference between `sync.Cond.Signal()` and `sync.Cond.Broadcast()`?",
+    options: ["`Signal` is non-blocking, while `Broadcast` is blocking.", "`Signal` wakes up one waiting goroutine, while `Broadcast` wakes up all waiting goroutines.", "`Signal` is for sending data, while `Broadcast` is for closing.", "There is no functional difference."],
+    correctAnswerIndex: 1,
+    explanation: "`Signal()` will wake up exactly one goroutine that is waiting on the condition variable (if any). `Broadcast()` will wake up all goroutines that are currently waiting. `Signal` is used when any waiting goroutine can handle the state change, while `Broadcast` is used when all waiting goroutines need to re-evaluate the condition.",
+    category: 'Concurrency'
+  },
+  {
+    id: 'mcq-40',
+    question: "What happens on the 4th send operation in this code?",
+    codeSnippet: `package main
+
+func main() {
+    ch := make(chan int, 3)
+    ch <- 1
+    ch <- 2
+    ch <- 3
+    ch <- 4 // What happens here?
+}`,
+    options: ["The program panics due to channel overflow.", "The value 4 overwrites the value 1.", "The send operation blocks until another goroutine receives a value from the channel.", "The channel's capacity is automatically increased."],
+    correctAnswerIndex: 2,
+    explanation: "A buffered channel of capacity 3 can hold 3 values without a corresponding receiver. The first three sends will complete immediately. The fourth send will block because the channel's buffer is full. It will remain blocked until a value is received from the channel by another goroutine.",
+    category: 'Concurrency'
   }
 ];
